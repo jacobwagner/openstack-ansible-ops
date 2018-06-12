@@ -13,7 +13,7 @@
 
 default_interface: "{{ default_network | default('eth0') }}"
 default_vm_image: "{{ default_image | default('ubuntu-16.04-amd64') }}"
-default_vm_storage: "{{ vm_disk_size | default(92160) }}"
+default_vm_storage: "{{ vm_disk_size | default(71680) }}"
 default_vm_disk_mode: lvm
 default_vm_disk_vg: vg01
 default_acng_bind_address: 0.0.0.0
@@ -151,3 +151,7 @@ osa_disable_serial: false
 osa_enable_elk_metrics: false
 osa_enable_os_profiler: false
 osa_enable_uwsgi_stats: false
+
+# Ceph
+enable_ceph_storage: false
+ceph_journal_size: 5120

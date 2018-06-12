@@ -98,15 +98,13 @@ to change this password please edit the pre-seed files.
 --------------------
 
 Set an external inventory used for the MNAIO:
-  ``MNAIO_INVENTORY=${MNAIO_INVENTORY:-playbooks/inventory}``
-
+  ``MNAIO_INVENTORY=${MNAIO_INVENTORY:-playbooks/inventory/hosts}``
 
 Set to instruct the preseed what the default network is expected to be:
   ``DEFAULT_NETWORK="${DEFAULT_NETWORK:-eth0}"``
 
-Set the VM disk size in gigabytes:
-  ``VM_DISK_SIZE="${VM_DISK_SIZE:-252}"``
-
+Set the VM disk size in megabytes:
+  ``VM_DISK_SIZE="${VM_DISK_SIZE:-71680}"``
 
 Instruct the system do all of the required host setup:
   ``SETUP_HOST=${SETUP_HOST:-true}``
@@ -175,7 +173,7 @@ Instruct the system to use a set amount of ram for compute VM type:
   ``COMPUTE_VM_SERVER_RAM=${COMPUTE_VM_SERVER_RAM:-8196}``
 
 Instruct the system to use a set amount of ram for infra VM type:
-  ``INFRA_VM_SERVER_RAM=${INFRA_VM_SERVER_RAM:-8196}``
+  ``INFRA_VM_SERVER_RAM=${INFRA_VM_SERVER_RAM:-12288}``
 
 Instruct the system to use a set amount of ram for load balancer VM type:
   ``LOADBALANCER_VM_SERVER_RAM=${LOADBALANCER_VM_SERVER_RAM:-1024}``
@@ -186,11 +184,38 @@ Instruct the system to use a set amount of ram for the logging VM type:
 Instruct the system to use a set amount of ram for the swift VM type:
   ``SWIFT_VM_SERVER_RAM=${SWIFT_VM_SERVER_RAM:-1024}``
 
+Instruct the system to use CEPH storage instead of the defaut swift/cinder:
+  ``ENABLE_CEPH_STORAGE=${ENABLE_CEPH_STORAGE:-false}``
+
+Instruct the system to use a set amount of ram for the ceph VM type:
+  ``CEPH_VM_SERVER_RAM=${CEPH_VM_SERVER_RAM:-1024}``
+
+Instruct the system to use a set size for the ceph osds (in MB):
+  ``CEPH_OSDS_SIZE=${ceph_osds_size:-20480}``
+
+Instruct the system to yse a set size for the ceph journal (in MB):
+  ``CEPH_JOURNAL_SIZE=${CEPH_JOURNAL_SIZE:-5120}``
+
 Instruct the system where to obtain iPXE kernels (looks for ipxe.lkrn, ipxe.efi, etc):
   ``IPXE_KERNEL_BASE_URL=${IPXE_KERNEL_BASE_URL:-'http://boot.ipxe.org'}``
 
 Instruct the system to use a customized iPXE script during boot of VMs:
   ``IPXE_PATH_URL=${IPXE_PATH_URL:-''}``
+
+
+Ceph Backed Storage
+-------------------
+
+When using Ceph as the storage backend you must override 3 variables to ensure
+proper deployment. ``INFRA_VM_SERVER_RAM`` needs to be set at ``16392``,
+``ENABLE_CEPH_STORAGE`` needs to be set to ``true``, and ``MNAIO_INVENTORY`` needs
+to be set to ``playbooks/inventory/hosts_ceph``. These will set all other
+mutually exclusive variables as needed to ensure that Ceph is deployed instead of
+Swift.
+
+You can also override the ``CEPH_OSDS_SIZE``, ``CEPH_JOURNAL_SIZE``, and
+``CEPH_VM_SERVER_RAM`` as needed, but this may cause issues on bare metal hosts
+with limited disk space and memory.
 
 
 Re-kicking VM(s)

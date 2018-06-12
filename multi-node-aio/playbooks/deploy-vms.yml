@@ -83,6 +83,32 @@
         - default_vm_disk_mode == "lvm"
       with_items: "{{ groups['pxe_servers'] }}"
 
+    - name: Delete Ceph VM Data LVs
+      lvol:
+        vg: vg01
+        lv: "{{ hostvars[item[0]]['server_hostname'] }}-{{ item[1] }}"
+        size: "{{ hostvars[item[0]]['ceph_osds_size'] }}"
+        state: absent
+        force: yes
+      when:
+        - enable_ceph_storage | default(false) | bool
+        - hostvars[item[0]]['server_vm'] | default(false) | bool
+      with_nested:
+        - "{{ groups['ceph_hosts'] }}"
+        - [ 'disk1', 'disk2', 'disk3', 'disk4', 'disk5', 'disk6', 'disk7' ]
+
+    - name: Create Ceph VM Data LVs
+      lvol:
+        vg: vg01
+        lv: "{{ hostvars[item[0]]['server_hostname'] }}-{{ item[1] }}"
+        size: "{{ hostvars[item[0]]['ceph_osds_size'] }}"
+      when:
+        - enable_ceph_storage | default(false) | bool
+        - hostvars[item[0]]['server_vm'] | default(false) | bool
+      with_nested:
+        - "{{ groups['ceph_hosts'] }}"
+        - [ 'disk1', 'disk2', 'disk3', 'disk4', 'disk5', 'disk6', 'disk7' ]
+
     - name: Setup/clean-up file-based disk images
       when:
         - default_vm_disk_mode == "file"
@@ -308,9 +334,9 @@
         state: restarted
 
 
-- name: Make space for swift and cinder volumes
-  hosts: cinder_hosts:swift_hosts
-  gather_facts: "{{ gather_facts | default(true) }}"
+- name: Remove deleteme mount and volume (lxc00)
+  hosts: cinder_hosts:swift_hosts:ceph_hosts
+  gather_facts: false
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
     - deploy-vms

@@ -69,6 +69,19 @@ global_overrides:
           - cinder_volume
           - nova_compute
           - swift_proxy
+{% if enable_ceph_storage | bool %}
+          - ceph-osd
+{% endif %}
+
+# Logic to enable/disable Ceph vs Cinder/Swift
+# If ceph is set, disable the other 2 explicity
+{% if enable_ceph_storage | bool %}
+{% set osa_enable_block_storage = false %}
+{% set osa_enable_object_storage = false %}
+{% endif %}
+
+# Set swift block
+{% if osa_enable_object_storage | bool %}
   swift:
     part_power: 8
     storage_network: 'br-storage'
@@ -83,10 +96,84 @@ global_overrides:
           name: default
           index: 0
           default: True
+{% endif %}
 
 ###
 ### Anchors
 ###
+
+infra_block: &infra_block
+{% for host in groups['infra_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      container_tech: "{{ default_container_tech }}"
+{% endfor %}
+
+compute_block: &compute_block
+{% for host in groups['compute_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      container_tech: "{{ default_container_tech }}"
+{% endfor %}
+
+loadbalancer_block: &loadbalancer_block
+{% for host in groups['loadbalancer_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      container_tech: "{{ default_container_tech }}"
+{% endfor %}
+
+log_block: &log_block
+{% for host in groups['log_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      container_tech: "{{ default_container_tech }}"
+{% endfor %}
+
+{% if enable_ceph_storage | bool %}
+ceph_mon_block: &ceph_mon_block
+{% for host in groups['infra_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+{% endfor %}
+
+ceph_osds_block: &ceph_osds_block
+{% for host in groups['ceph_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      devices:
+        - /dev/vdc
+        - /dev/vdd
+        - /dev/vde
+        - /dev/vdf
+        - /dev/vdg
+        - /dev/vdh
+      raw_journal_devices:
+        - /dev/vdb
+        - /dev/vdb
+        - /dev/vdb
+        - /dev/vdb
+        - /dev/vdb
+        - /dev/vdb
+{% endfor %}
+{% endif %}
+
+{% if osa_enable_object_storage | bool %}
+swift_block: &swift_block
+{% for host in groups['swift_hosts'] %}
+  {{ hostvars[host]['server_hostname'] }}:
+    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
+    container_vars:
+      container_tech: "{{ default_container_tech }}"
+{% endfor %}
+{% endif %}
+
+{% if osa_enable_block_storage | bool %}
 cinder_block: &cinder_block
 {% for host in groups['cinder_hosts'] %}
   {{ hostvars[host]['server_hostname'] }}:
@@ -101,52 +188,7 @@ cinder_block: &cinder_block
           volume_backend_name: LVM_iSCSI
           iscsi_ip_address: {{ hostvars[host]['server_networks']['storage']['address'].split('/')[0] }}
 {% endfor %}
-
-
-compute_block: &compute_block
-{% for host in groups['compute_hosts'] %}
-  {{ hostvars[host]['server_hostname'] }}:
-    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
-    container_vars:
-      container_tech: "{{ default_container_tech }}"
-{% endfor %}
-
-
-infra_block: &infra_block
-{% for host in groups['infra_hosts'] %}
-  {{ hostvars[host]['server_hostname'] }}:
-    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
-    container_vars:
-      container_tech: "{{ default_container_tech }}"
-{% endfor %}
-
-
-loadbalancer_block: &loadbalancer_block
-{% for host in groups['loadbalancer_hosts'] %}
-  {{ hostvars[host]['server_hostname'] }}:
-    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
-    container_vars:
-      container_tech: "{{ default_container_tech }}"
-{% endfor %}
-
-
-log_block: &log_block
-{% for host in groups['log_hosts'] %}
-  {{ hostvars[host]['server_hostname'] }}:
-    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
-    container_vars:
-      container_tech: "{{ default_container_tech }}"
-{% endfor %}
-
-
-swift_block: &swift_block
-{% for host in groups['swift_hosts'] %}
-  {{ hostvars[host]['server_hostname'] }}:
-    ip: {{ hostvars[host]['server_networks']['mgmt']['address'].split('/')[0] }}
-    container_vars:
-      container_tech: "{{ default_container_tech }}"
-{% endfor %}
-
+{% endif %}
 
 ###
 ### Infrastructure
@@ -178,12 +220,32 @@ os-infra_hosts: *infra_block
 identity_hosts: *infra_block
 {% endif %}
 
+{% if enable_ceph_storage | bool %}
+# Ceph Mon Hosts
+ceph-mon_hosts: *ceph_mon_block
+
+# Ceph OSDS Hosts
+ceph-osd_hosts: *ceph_osds_block
+
+# cinder api services
+storage-infra_hosts: *infra_block
+
+{% endif %}
+
 {% if osa_enable_block_storage | bool %}
 # cinder api services
 storage-infra_hosts: *infra_block
 
 # cinder storage host (LVM-backed)
 storage_hosts: *cinder_block
+{% endif %}
+
+{% if osa_enable_object_storage | bool %}
+# swift storage hosts
+swift_hosts: *swift_block
+
+# swift infra hosts
+swift-proxy_hosts: *infra_block
 {% endif %}
 
 {% if osa_enable_image | bool %}

@@ -1,5 +1,5 @@
 ---
-# Copyright 2017, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,18 +15,20 @@
 
 ansible_os_family: "{{ images[default_vm_image]['image_type'] }}"
 
-server_hostname: 'infra3'
+server_hostname: 'ceph2'
 server_domain_name: 'openstack.local'
 server_vm: true
-server_vm_ram: '{{ infra_vm_server_ram | default(12288) }}'
-server_vm_vcpus: '{{ infra_vm_server_vcpus | default(4) }}'
-server_vm_fixed_addr: '10.0.2.102'
+server_vm_ram: '{{ ceph_vm_server_ram | default(1024) }}'
+server_vm_vcpus: '{{ ceph_vm_server_vcpus | default(2) }}'
+server_vm_fixed_addr: '10.0.2.161'
 server_vm_primary_network: 'dhcp'
 server_image: "{{ default_vm_image }}"
 server_default_interface: 'eth0'
-server_mac_address: '52:54:00:bd:80:02'
+server_mac_address: '52:54:00:bd:80:14'
 server_preseed_ks: 'vm'
 server_extra_options: ''
+
+ceph_osds_size: 5120
 
 server_networks:
   dhcp:
@@ -36,12 +38,12 @@ server_networks:
   mgmt:
     iface: 'eth1'
     inet_type: 'static'
-    address: '10.0.236.102/22'
+    address: '10.0.236.161/22'
     vm_int_iface: vm-br-eth1
   flat:
     iface: 'eth2'
     inet_type: 'static'
-    address: '10.0.248.102/22'
+    address: '10.0.248.161/22'
     vm_int_iface: vm-br-eth2
   vlan:
     iface: 'eth3'
@@ -50,10 +52,10 @@ server_networks:
   vxlan:
     iface: 'eth4'
     inet_type: 'static'
-    address: '10.0.240.102/22'
+    address: '10.0.240.161/22'
     vm_int_iface: vm-br-eth4
   storage:
     iface: 'eth5'
     inet_type: 'static'
-    address: '10.0.244.102/22'
+    address: '10.0.244.161/22'
     vm_int_iface: vm-br-eth5

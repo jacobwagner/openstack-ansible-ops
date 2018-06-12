@@ -20,14 +20,14 @@ source bootstrap.sh
 source ansible-env.rc
 
 ansible mnaio_hosts \
-        -i ${MNAIO_INVENTORY:-"playbooks/inventory"} \
+        -i ${MNAIO_INVENTORY:-"playbooks/inventory/hosts"} \
         -m pip \
         -a "name=netaddr"
 
 export MNAIO_ANSIBLE_PARAMETERS=${MNAIO_ANSIBLE_PARAMETERS:-""}
 
 ansible-playbook -vv \
-                 -i ${MNAIO_INVENTORY:-"playbooks/inventory"} \
+                 -i ${MNAIO_INVENTORY:-"playbooks/inventory/hosts"} \
                  -e setup_host=${SETUP_HOST:-"true"} \
                  -e setup_pxeboot=${SETUP_PXEBOOT:-"true"} \
                  -e setup_dhcpd=${SETUP_DHCPD:-"true"} \
@@ -40,7 +40,7 @@ ansible-playbook -vv \
                  -e os_ops_branch=${OS_OPS_BRANCH:-"master"} \
                  -e default_network=${DEFAULT_NETWORK:-"eth0"} \
                  -e default_image=${DEFAULT_IMAGE:-"ubuntu-16.04-amd64"} \
-                 -e vm_disk_size=${VM_DISK_SIZE:-92160} \
+                 -e vm_disk_size=${VM_DISK_SIZE:-71680} \
                  -e http_proxy=${http_proxy:-''} \
                  -e run_osa=${RUN_OSA:-"true"} \
                  -e run_elk=${RUN_ELK:-"false"} \
@@ -52,10 +52,14 @@ ansible-playbook -vv \
                  -e default_ubuntu_mirror_directory=${DEFAULT_MIRROR_DIR:-"/ubuntu"} \
                  -e cinder_vm_server_ram=${CINDER_VM_SERVER_RAM:-"2048"} \
                  -e compute_vm_server_ram=${COMPUTE_VM_SERVER_RAM:-"8196"} \
-                 -e infra_vm_server_ram=${INFRA_VM_SERVER_RAM:-"8196"} \
+                 -e infra_vm_server_ram=${INFRA_VM_SERVER_RAM:-"12288"} \
                  -e loadbalancer_vm_server_ram=${LOADBALANCER_VM_SERVER_RAM:-"2048"} \
                  -e logging_vm_server_ram=${LOGGING_VM_SERVER_RAM:-"2048"} \
                  -e swift_vm_server_ram=${SWIFT_VM_SERVER_RAM:-"2048"} \
+                 -e enable_ceph_storage=${ENABLE_CEPH_STORAGE:-"false"} \
+                 -e ceph_vm_server_ram=${CEPH_VM_SERVER_RAM:-"1024"} \
+                 -e ceph_osds_size=${ceph_osds_size:-"20480"} \
+                 -e ceph_journal_size=${CEPH_JOURNAL_SIZE:-"5120"} \
                  -e container_tech=${CONTAINER_TECH:-"lxc"} \
                  -e ipxe_kernel_base_url=${IPXE_KERNEL_BASE_URL:-"http://boot.ipxe.org"} \
                  -e ipxe_path_url=${IPXE_PATH_URL:-""} ${MNAIO_ANSIBLE_PARAMETERS} \

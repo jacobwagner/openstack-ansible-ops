@@ -346,8 +346,8 @@
         state: restarted
 
 
-- name: Make space for swift and cinder volumes
-  hosts: cinder_hosts:swift_hosts
+- name: Make space for swift/cinder/ceph volumes
+  hosts: cinder_hosts:swift_hosts:ceph_hosts
   gather_facts: "{{ gather_facts | default(true) }}"
   environment: "{{ deployment_environment_variables | default({}) }}"
   tags:
@@ -442,3 +442,30 @@
         - disk1
         - disk2
         - disk3
+
+- name: Setup Ceph OSDS Volumes
+  hosts: ceph_hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  environment: "{{ deployment_environment_variables | default({}) }}"
+  tags:
+    - deploy-vms
+  tasks:
+    - name: Create Ceph OSDS Journal LVs
+      lvol:
+        vg: vmvg00
+        lv: "{{ item }}"
+        size: "{{ ceph_journal_size }}"
+      with_items:
+        - journal1
+        - journal2
+        - journal3
+
+    - name: Create Ceph OSDS Disk LVs
+      lvol:
+        vg: vmvg00
+        lv: "{{ item }}"
+        size: "{{ ceph_osds_size }}"
+      with_items:
+        - data1
+        - data2
+        - data3

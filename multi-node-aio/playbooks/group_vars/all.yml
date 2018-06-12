@@ -60,6 +60,9 @@ images:
       vm-compute:
         url: "http://{{ tftp_server }}/configs/vm-compute.config"
         template_name: "vm-compute.config"
+      vm-ceph:
+        url: "http://{{ tftp_server }}/configs/vm-ceph.config"
+        template_name: "vm-ceph.config"
   ubuntu-16.04-amd64:
     image_type: "debian"
     image_os: "ubuntu"
@@ -74,6 +77,9 @@ images:
       vm-compute:
         url: "http://{{ tftp_server }}/configs/vm-compute.config"
         template_name: "vm-compute.config"
+      vm-ceph:
+        url: "http://{{ tftp_server }}/configs/vm-ceph.config"
+        template_name: "vm-ceph.config"
   ubuntu-14.04-amd64:
     image_type: "debian"
     image_os: "ubuntu"
@@ -88,6 +94,9 @@ images:
       vm-compute:
         url: "http://{{ tftp_server }}/configs/vm-compute.config"
         template_name: "vm-compute.config"
+      vm-ceph:
+        url: "http://{{ tftp_server }}/configs/vm-ceph.config"
+        template_name: "vm-ceph.config"
   centos-7-amd64:
     image_type: "redhat"
     image_version: 7
@@ -102,6 +111,9 @@ images:
       vm-compute:
         url: "http://{{ tftp_server }}/configs/vm-compute.config"
         template_name: "vm-compute.config"
+      vm-ceph:
+        url: "http://{{ tftp_server }}/configs/vm-ceph.config"
+        template_name: "vm-ceph.config"
 
 # mnaio_data_disk: 'sdc'  # str - not required, set this to define a given data disk if no data disk
 #                                               is defined the largest unpartitioned disk will be used.
@@ -152,3 +164,8 @@ osa_disable_serial: false
 osa_enable_elk_metrics: false
 osa_enable_os_profiler: false
 osa_enable_uwsgi_stats: false
+
+# Ceph
+enable_ceph_storage: false
+ceph_journal_size: 5120
+ceph_osds_filesystem_type: 'xfs'

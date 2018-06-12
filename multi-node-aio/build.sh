@@ -20,14 +20,14 @@ source bootstrap.sh
 source ansible-env.rc
 
 ansible vm_hosts \
-        -i ${MNAIO_INVENTORY:-"playbooks/inventory"} \
+        -i ${MNAIO_INVENTORY:-"playbooks/inventory/hosts"} \
         -m pip \
         -a "name=netaddr"
 
 export MNAIO_ANSIBLE_PARAMETERS=${MNAIO_ANSIBLE_PARAMETERS:-""}
 
 ansible-playbook -vv \
-                 -i ${MNAIO_INVENTORY:-"playbooks/inventory"} \
+                 -i ${MNAIO_INVENTORY:-"playbooks/inventory/hosts"} \
                  -e setup_host=${SETUP_HOST:-"true"} \
                  -e setup_pxeboot=${SETUP_PXEBOOT:-"true"} \
                  -e setup_dhcpd=${SETUP_DHCPD:-"true"} \
@@ -56,6 +56,11 @@ ansible-playbook -vv \
                  -e loadbalancer_vm_server_ram=${LOADBALANCER_VM_SERVER_RAM:-"2048"} \
                  -e logging_vm_server_ram=${LOGGING_VM_SERVER_RAM:-"2048"} \
                  -e swift_vm_server_ram=${SWIFT_VM_SERVER_RAM:-"2048"} \
+                 -e enable_ceph_storage=${ENABLE_CEPH_STORAGE=-"false"} \
+                 -e ceph_vm_server_ram=${CEPH_VM_SERVER_RAM:-"1024"} \
+                 -e ceph_vm_disk_size=${CEPH_VM_DISK_SIZE:-122880} \
+                 -e ceph_osds_size=${CEPH_OSDS_SIZE:-"20480"} \
+                 -e ceph_journal_size=${CEPH_JOURNAL_SIZE:-"5120"} \
                  -e container_tech=${CONTAINER_TECH:-"lxc"} \
                  -e ipxe_kernel_base_url=${IPXE_KERNEL_BASE_URL:-"http://boot.ipxe.org"} \
                  -e ipxe_path_url=${IPXE_PATH_URL:-""} ${MNAIO_ANSIBLE_PARAMETERS} \

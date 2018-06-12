@@ -192,6 +192,15 @@
         group: root
       with_dict: "{{ images }}"
 
+    - name: Preseeds for pxe vm-ceph
+      template:
+        src: "pxe/configs/{{ images[default_vm_image]['image_type'] | lower }}/vm-ceph.config.j2"
+        dest: /var/www/pxe/configs/vm-ceph.config
+        mode: "0644"
+        owner: root
+        group: root
+      with_dict: "{{ images }}"
+
     - name: Ensure permissions are correct
       file:
         dest: "{{ item }}"

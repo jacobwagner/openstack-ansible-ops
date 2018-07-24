@@ -227,27 +227,14 @@ Snapshotting an environment before major testing
 ------------------------------------------------
 
 Running a snapshot on all of the vms before doing major testing is wise as it'll
-give you a restore point without having to re-kick the cloud. You can do this
-using some basic ``virsh`` commands and a little bash.
+give you a restore point without having to re-kick the cloud. You can do this by
+running the script located at ``scripts/snapshot.sh``. There are two variables that
+can be overridden located in the ``vars/snapshot.yml`` file. The ``postfix`` variable
+will allow you to have multiple snapshots of a single environment. Just ensure that you
+have enough space on the VG to store the snapshots.
 
-.. code-block:: bash
-
-    for instance in $(virsh list --all --name); do
-      virsh snapshot-create-as --atomic --name $instance-kilo-snap --description "saved kilo state before liberty upgrade" $instance
-    done
-
-
-Once the previous command is complete you'll have a collection of snapshots
-within all of your infrastructure hosts. These snapshots can be used to restore
-state to a previous point if needed. To restore the infrastructure hosts to a
-previous point, using your snapshots, you can execute a simple ``virsh``
-command or the following bash loop to restore everything to a known point.
-
-.. code-block:: bash
-
-    for instance in $(virsh list --all --name); do
-      virsh snapshot-revert --snapshotname $instance-kilo-snap --running $instance
-    done
+In order to revert an environment, simply run the revert script located in the scripts
+directory here ``scripts/snapshot_revert.sh`` with the correct ``postfix`` variable set.
 
 Using a file-based backing store with thin-provisioned VM's
 -----------------------------------------------------------

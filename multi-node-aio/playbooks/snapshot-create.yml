@@ -1,0 +1,213 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in witing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Stop Galera Services (infra2, infra3)
+  hosts: galera_all:!galera_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Stop Galera Service
+      systemd:
+        name: mysql
+        state: stopped
+
+    - name: Disable Galera on startup
+      systemd:
+        name: mysql
+        enabled: no
+
+- name: Stop RabbitMQ Services (infra2, infra3)
+  hosts: rabbitmq_all:!rabbitmq_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Stop RabbitMQ Service
+      systemd:
+        name: rabbitmq-server
+        state: stopped
+
+    - name: Disable RabbitMQ on startup
+      systemd:
+        name: rabbitmq-server
+        enabled: no
+
+- name: Stop Galera Services (infra1)
+  hosts: galera_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Stop Galera Service
+      systemd:
+        name: mysql
+        state: stopped
+
+    - name: Disable Galera on startup
+      systemd:
+        name: mysql
+        enabled: no
+
+- name: Stop RabbitMQ Services (infra1)
+  hosts: rabbitmq_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Stop RabbitMQ Service
+      systemd:
+        name: rabbitmq-server
+        state: stopped
+
+    - name: Disable RabbitMQ on startup
+      systemd:
+        name: rabbitmq-server
+        enabled: no
+
+- name: Snapshot all Virtual Machines LVs
+  hosts: vm_hosts
+  gather_facts: "{{ gather_facts | default(true) }}"
+  vars_files:
+    - vars/snapshot.yml
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Shutdown VM
+      virt:
+        name: "{{ hostvars[item]['server_hostname'] }}"
+        command: shutdown
+      failed_when: false
+      when:
+        - hostvars[item]['server_vm'] | default(false) | bool
+      with_items: "{{ groups['pxe_servers'] }}"
+
+    - name: Wait until VM is shutdown
+      virt:
+        command: status
+        name: "{{ hostvars[item]['server_hostname'] }}"
+      connection: local
+      register: vm_info
+      until: vm_info.status == 'shutdown'
+      retries: 100
+      delay: 10
+      when:
+        - hostvars[item]['server_vm'] | default(false) | bool
+      with_items: "{{ groups['pxe_servers'] }}"
+
+    - name: Snapshot VM LV
+      lvol:
+        vg: vg01
+        lv: "{{ hostvars[item]['server_hostname'] }}"
+        snapshot: "{{ item }}_{{ postfix }}"
+        size: "{{ snapshot_size }}"
+      with_items: "{{ groups['pxe_servers'] }}"
+
+    - name: Restart VM
+      virt:
+        name: "{{ hostvars[item]['server_hostname'] }}"
+        command: start
+      failed_when: false
+      when:
+        - hostvars[item]['server_vm'] | default(false) | bool
+      with_items: "{{ groups['pxe_servers'] }}"
+
+    - name: Ensure VM is running
+      virt:
+        name: "{{ hostvars[item]['server_hostname'] }}"
+        state: running
+      failed_when: false
+      when:
+        - hostvars[item]['server_vm'] | default(false) | bool
+      with_items: "{{ groups['pxe_servers'] }}"
+
+- name: Check VM Connectivity
+  import_playbook: vm-status.yml
+
+- name: Ensure Galera Service
+  hosts: galera_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Start new galera cluster
+      shell: galera_new_cluster
+
+    - name: Enable Galera on startup
+      systemd:
+        name: mysql
+        enabled: yes
+
+- name: Ensure RabbitMQ Service
+  hosts: rabbitmq_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - revert-vms
+  tasks:
+    - name: Ensure RabbitMQ Service is running
+      systemd:
+        name: rabbitmq-server
+        state: started
+
+    - name: Enable RabbitMQ on startup
+      systemd:
+        name: rabbitmq-server
+        enabled: yes
+
+- name: Galera Service
+  hosts: galera_all:!galera_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - revert-vms
+  tasks:
+    - name: Start Galera Service
+      systemd:
+        name: mysql
+        state: started
+
+    - name: Enable Galera on startup
+      systemd:
+        name: mysql
+        enabled: yes
+
+- name: RabbitMQ Services
+  hosts: rabbitmq_all:!rabbitmq_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Start RabbitMQ Service
+      systemd:
+        name: rabbitmq-server
+        state: started
+
+    - name: Enable RabbitMQ on startup
+      systemd:
+        name: rabbitmq-server
+        enabled: yes
+
+- name: Restart Galera
+  hosts: galera_all[0]
+  gather_facts: "{{ gather_facts | default(true) }}"
+  tags:
+    - snapshot-vms
+  tasks:
+    - name: Restart Galera Service
+      systemd:
+        name: mysql
+        state: restarted
+
+- name: Validate Cluster Status
+  import_playbook: vm-status.yml

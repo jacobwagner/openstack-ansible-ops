@@ -1,0 +1,6 @@
+---
+# This file contains all variables that are related to the snapshot and revert
+# snapshot operations
+
+snapshot_size: 20G
+postfix: snap

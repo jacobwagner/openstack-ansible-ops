@@ -298,6 +298,12 @@
         autostart: yes
       with_dict: "{{ mnaio_host_networks }}"
 
+    - name: Ensure virt networks are active
+      virt_net:
+        state: active
+        name: "{{ item.value.iface }}"
+      with_dict: "{{ mnaio_host_networks }}"
+
     - name: Locate the largest writable data disk if mnaio_data_disk is not set
       shell: >
         lsblk -brndo NAME,TYPE,FSTYPE,RO,SIZE | awk '/d[b-z]+ disk +0/{ if ($4>m){m=$4; d=$1}}; END{print d}'

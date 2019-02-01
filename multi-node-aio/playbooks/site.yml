@@ -37,6 +37,10 @@
   when:
     - deploy_osa | default(true) | bool
 
+- import_playbook: deploy-bind.yml
+  when:
+    - deploy_bind | default(false) | bool
+
 - import_playbook: deploy-elk.yml
   when:
     - deploy_elk | default(false) | bool

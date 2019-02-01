@@ -36,6 +36,7 @@ ansible-playbook -vv \
                  -e setup_dhcpd=${SETUP_DHCPD:-"true"} \
                  -e deploy_vms=${DEPLOY_VMS:-"true"} \
                  -e deploy_osa=${DEPLOY_OSA:-"true"} \
+                 -e deploy_bind=${DEPLOY_BIND:-"false"} \
                  -e deploy_elk=${DEPLOY_ELK:-"false"} \
                  -e osa_repo=${OSA_REPO:-"https://git.openstack.org/openstack/openstack-ansible"} \
                  -e os_ops_repo=${OS_OPS_REPO:-"https://git.openstack.org/openstack/openstack-ansible-ops"} \
@@ -46,6 +47,7 @@ ansible-playbook -vv \
                  -e vm_disk_size=${VM_DISK_SIZE:-92160} \
                  -e http_proxy=${http_proxy:-''} \
                  -e run_osa=${RUN_OSA:-"true"} \
+                 -e run_bind=${RUN_BIND:-"false"} \
                  -e run_elk=${RUN_ELK:-"false"} \
                  -e pre_config_osa=${PRE_CONFIG_OSA:-"true"} \
                  -e configure_openstack=${CONFIGURE_OPENSTACK:-"true"} \

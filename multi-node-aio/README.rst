@@ -167,6 +167,9 @@ Set the openstack-ansible-ops branch for this script to deploy:
 Instruct the system to deploy OpenStack Ansible:
   ``DEPLOY_OSA=${DEPLOY_OSA:-true}``
 
+Instruct the system to deploy OpenStack Ansible Designate:
+  ``DEPLOY_BIND=${DEPLOY_BIND:-false}``
+
 Instruct the system to deploy the ELK Stack:
   ``DEPLOY_ELK=${DEPLOY_ELK:-false}``
 
@@ -176,6 +179,10 @@ Instruct the system to pre-config the envs for running OSA playbooks:
 Instruct the system to run the OSA playbooks, if you want to deploy other OSA
 powered cloud, you can set it to false:
   ``RUN_OSA=${RUN_OSA:-true}``
+
+Instruct the system to run the BIND playbooks, if you want another DNS Server
+you can set this to false:
+  ``RUN_BIND=${RUN_BIND:-false}``
 
 Instruct the system to run the ELK playbooks:
   ``RUN_ELK=${RUN_ELK:-false}``

@@ -1,0 +1,17 @@
+---
+physical_skel:
+  dnsaas_bind_containers:
+    belongs_to:
+      - all_containers
+
+container_skel:
+  designate_bind_containers:
+    belongs_to:
+      - dnsaas_containers
+    contains:
+      - designate_bind
+
+component_skel:
+  designate_bind:
+    belongs_to:
+      - designate_bind_all

@@ -1,0 +1,68 @@
+---
+# Copyright 2014-2019, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# With the apt package it will install a rndc key so we dont need to generate one
+- block:
+    - name: Update the apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: "{{ (cache_timeout is defined) | ternary(cache_timeout, omit) }}"
+      register: update_apt_cache
+      until: update_apt_cache | success
+      retries: 5
+      delay: 2
+
+    - name: Install BIND (primary method)
+      apt:
+        name: bind9
+        state: present
+      register: install_packages
+      until: install_packages | success
+      retries: 5
+      delay: 2
+  rescue:
+    - name: Install BIND (fallback method)
+      command: |
+        apt-get update
+        apt-get install -y bind9
+      register: install_packages
+      until: install_packages | success
+      retries: 5
+      delay: 2
+
+- name: Install named configuration file
+  template:
+    src: ../files/named.conf.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: root
+  notify: Restart BIND
+
+- name: Create needed directories
+  file:
+    name: "{{ item }}"
+    group: "bind"
+    mode: 0775
+    state: directory
+  with_items:
+    - "/var/cache/bind/data"
+    - "/var/cache/bind/dynamic"
+  notify: Restart BIND
+
+- name: Start bind
+  service:
+    name: bind9
+    enabled: yes
+    state: started
